@@ -6,50 +6,62 @@
 
 ## Project
 
-- **Name**: langchain-rag-app
-- **Purpose**: A Retrieval-Augmented Generation app — ingest documents, embed them
-  into a vector store, and answer questions through a conversational Streamlit UI.
-- **Stack**: Python 3.8+ · LangChain · ChromaDB · HuggingFace models (local,
-  no API keys) · Streamlit UI. Dependencies managed with pip + `requirements.txt`.
+- **Name**: palimpsest (formerly langchain-rag-app)
+- **Purpose**: A Retrieval-Augmented Generation app. Ingest documents, embed them
+  into a vector store, and answer questions with citations through a Streamlit UI or a CLI.
+- **Stack**: Python 3.14+ · LangChain 1.x · Chroma · Hugging Face models (local,
+  no API keys) · Streamlit · pydantic-settings. Managed with uv.
 
 ## Layout
 
-- `src/rag_engine/` — core RAG orchestration (retrieval + answer generation).
-- `src/document_processor/` — document loading and chunking (PDF/TXT/MD/DOCX).
-- `src/vector_store/` — ChromaDB vector store operations.
-- `src/web_interface/` — Streamlit app (`app.py`) and UI helpers.
-- `src/utils/` — shared helpers.
-- `config/` — setup and configuration scripts.
-- `scripts/` — launchers (`run.py`, `run_web.py`, `run.sh`, `run.bat`, `main.py`).
-- `tests/` — pytest suite (`test_*.py`).
+- `src/palimpsest/app.py` — Streamlit UI. Keep it thin. Logic belongs in the engine.
+- `src/palimpsest/cli.py` — the `palimpsest` command (`ingest`, `ask`, `status`, `ui`).
+- `src/palimpsest/config.py` — `Settings` (pydantic-settings) and model presets.
+- `src/palimpsest/engine.py` — `RAGEngine` (shared, stateless per user) and `Conversation`
+  (one per user session: history and retrieval options).
+- `src/palimpsest/markdown_safety.py` — sanitizes model and document text before the UI renders it.
+- `src/palimpsest/models.py` — shared dataclasses (`Answer`, `SourceChunk`, reports).
+- `src/palimpsest/models_factory.py` — builds the embedder and chat model.
+- `src/palimpsest/documents/` — file loaders and chunking.
+- `src/palimpsest/retrieval/` — Chroma store and pure ranking functions.
+- `tests/` — pytest suite. Uses LangChain fakes. Never downloads a model.
 
 ## Commands
 
 ```bash
-# Create and activate a virtual environment first, then:
-pip install -r requirements.txt        # install deps (includes pytest)
-
-pytest                                 # run the test suite (config in pyproject.toml)
-pytest -m "not slow"                   # skip slow/model-heavy tests
-pytest tests/test_vector_store.py      # single test file
-
-# Run the app (Streamlit UI on http://localhost:8501):
-streamlit run src/web_interface/app.py
-python scripts/run.py                  # launcher (also run.sh / run.bat)
-
-# Configuration helpers:
-python config/setup.py                 # automated environment setup
-python config/show_config.py           # print active model/config options
+uv sync                                  # install locked dependencies (dev group included)
+uv run pytest                            # run the test suite
+uv run pytest tests/test_engine.py       # one file
+uv run ruff format                       # format (line length 99, the PEP 8 maximum)
+uv run ruff check --fix                  # lint: pycodestyle, pydocstyle (Google), bandit, ...
+uv run pyright                           # type check, strict mode
+uv run palimpsest ui                     # Streamlit UI on http://localhost:8501
+uv run palimpsest ingest <files...>      # index documents from the command line
+uv run palimpsest ask "<question>"       # ask from the command line
 ```
 
-There is no separate lint, format, or type-check tool configured in this repo —
-`pytest` is the only automated check. Do not introduce ruff/black/mypy config
-unless the user asks; follow the conventions below by hand instead.
+Before you call a change finished, run `uv run ruff check`, `uv run ruff format --check`,
+`uv run pyright`, and `uv run pytest`.
 
 ## Conventions
 
-- Python standards live in `.claude/skills/python-standards/SKILL.md` — they apply
-  to every agent, not just Claude. Read it before writing or refactoring Python.
-- Keep diffs small and focused. One logical change per commit; conventional commit
-  messages (`feat:`, `fix:`, `refactor:`, `chore:`, ...).
-- Te
+- Python standards live in `.claude/skills/python-standards/SKILL.md`. They apply
+  to every agent, not just Claude. Read them before you write or refactor Python.
+- Use `uv add` and `uv run`. Never `pip install` into the project environment.
+  Commit `uv.lock`.
+- Import heavy packages (`torch`, `transformers`, `langchain_huggingface`) inside
+  functions when only the runtime path needs them. Tests and CLI help must stay fast.
+- Put logic in `engine.py` and the pure modules. Keep `app.py` and `cli.py` thin.
+- Inject models and stores. Do not mock what the project owns. For true external
+  models, use the fakes in `langchain_core`.
+- Keep diffs small and focused. One logical change per commit. Use conventional
+  commit messages (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`).
+
+## Claude Code hooks
+
+- **On every Write/Edit**, a hook formats and lints changed files when a formatter
+  is available. Ruff is configured, so Python files get formatted.
+- **When a turn ends**, a Stop hook runs `pytest` for Python files changed in the
+  session. Fix failures before you stop.
+- **Guard hooks** block writes to secret files, shell reads of secrets, env dumps,
+  destructive commands, edits to policy files, and unlisted WebFetch or package runners.

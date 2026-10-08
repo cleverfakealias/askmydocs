@@ -5,13 +5,11 @@
 Automation in this repo (configured in `.claude/settings.json`):
 
 - **On every Write/Edit** a hook auto-formats and lints changed files when a
-  formatter is available. This repo has no ruff/black configured, so the hook
-  is effectively a no-op for Python here — match the style in `python-standards`
-  by hand.
+  formatter is available. Ruff is configured in `pyproject.toml`, so Python
+  files get formatted on save.
 - **When you finish a turn**, a Stop hook runs `pytest` for Python files changed
   this session. If it blocks you, fix the failures; it won't loop (it lets you
-  stop on the second attempt). Model-heavy tests are marked `slow` — keep the
-  default suite fast.
+  stop on the second attempt). The suite uses fake models, so it runs in seconds.
 - **Guard hooks** block: writes to secret files; shell reads of secrets
   (`cat .env`, `~/.ssh`, etc.); env dumps (`printenv`); destructive commands;
   editing policy files (`.claude/settings*`, hooks, `.mcp.json`, `.git/`,

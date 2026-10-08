@@ -1,228 +1,140 @@
-# LangChain RAG Application
+# AskMyDocs
 
-A modern Retrieval-Augmented Generation (RAG) application built with LangChain, featuring document ingestion, vector search, and conversational AI.
+Chat with your own documents. AskMyDocs indexes PDF, TXT, Markdown, and Word files on your machine, then answers questions with a local open-weight model. It needs no API keys, and your documents and questions never leave your machine. The only network traffic is the model download from Hugging Face, which you can turn off after the first run. See [Privacy and network use](#privacy-and-network-use).
+
+> Ask a question about your files. Get an answer that cites the exact passages it used.
 
 ## Features
 
-- 📄 **Document Processing**: Support for PDF, TXT, MD, and DOCX documents
-- 🔍 **Vector Search**: Efficient semantic search using ChromaDB
-- 🤖 **AI Chat**: Conversational interface powered by free HuggingFace models
-- 🌐 **Web Interface**: Beautiful Streamlit-based UI
-- 📊 **Document Management**: Upload, process, and manage your documents
+- **Local by default.** Chat and embedding models run through Hugging Face on your own hardware.
+- **Cited answers.** Each answer lists the file and page of every passage it used.
+- **Three retrieval methods.** MMR (default), plain similarity, and hybrid semantic plus BM25 keyword search.
+- **Clear failure handling.** A bad file does not stop a batch. A failed model shows the matching passages instead.
+- **Web UI and CLI.** Use Streamlit in the browser or the `askmydocs` command in a terminal.
 
-## Project Structure
+## Requirements
 
-```
-langchain-rag-app/
-├── src/                          # Source code
-│   ├── rag_engine/              # Core RAG functionality
-│   │   ├── __init__.py
-│   │   └── engine.py            # Main RAG engine
-│   ├── document_processor/      # Document processing
-│   │   ├── __init__.py
-│   │   └── processor.py         # Document loading and chunking
-│   ├── vector_store/            # Vector database operations
-│   │   ├── __init__.py
-│   │   └── store.py             # ChromaDB integration
-│   ├── utils/                   # Helper functions
-│   │   ├── __init__.py
-│   │   └── helpers.py           # Utility functions
-│   └── web_interface/           # Streamlit web app
-│       ├── __init__.py
-│       └── app.py               # Main Streamlit application
-├── tests/                       # Test files
-│   └── __init__.py
-├── config/                      # Configuration files
-│   ├── __init__.py
-│   └── setup.py                 # Setup script
-├── scripts/                     # Helper and startup scripts
-│   ├── main.py                  # CLI entry point
-│   ├── run.py                   # Launcher
-│   ├── run_web.py               # Launch web app
-│   ├── run.sh                   # Unix launcher
-│   └── run.bat                  # Windows launcher
-├── requirements.txt             # Python dependencies
-├── .env                         # Environment variables (create this)
-├── .gitignore                   # Git ignore rules
-└── README.md                    # This file
-```
+- Python 3.14 or newer
+- [uv](https://docs.astral.sh/uv/) for installing and running the project
+- About 7 GB of free disk space for the default models, and 8 GB of RAM for the default preset
+- Optional: an NVIDIA GPU. On Windows and Linux, `uv sync` installs the CUDA 13.0 build of PyTorch, which supports RTX 50-series cards. On macOS it installs the standard build, which uses Apple Silicon through `DEVICE=mps`.
 
-## Setup Instructions
-
-### 1. Prerequisites
-- Python 3.8+ (latest stable version recommended)
-- No API keys required - using free HuggingFace models!
-
-### 2. Quick Setup (Recommended)
+## Quick start
 
 ```bash
-# Run the automated setup script
-python config/setup.py
+# Install the locked dependencies into .venv
+uv sync
+
+# Open the web interface at http://localhost:8501
+uv run askmydocs ui
 ```
 
-### 3. Manual Setup
+The first run downloads the chat model and the embedding model. This can take several minutes.
+
+## Command line
 
 ```bash
-cd langchain-rag-app
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Create optional .env file for model configuration
-# Copy from env_example.txt (optional)
+uv run askmydocs ingest docs/handbook.pdf notes.md    # index files
+uv run askmydocs ask "What does the handbook say about refunds?"
+uv run askmydocs status                               # list indexed files
+uv run askmydocs -v ask "..."                         # show debug logs
 ```
-
-### 4. Environment Setup (Optional)
-
-The application uses free HuggingFace models, so no API keys are required! A `.env` file is optional and can be used for model configuration:
-
-#### **Quick Configuration Options:**
-
-**Use Model Presets (Recommended):**
-```env
-# Choose from: fast, balanced, quality, max_quality, technical, mistral, mixtral, phi, gemma, gpt2, llama2
-MODEL_PRESET=fast          # Microsoft Phi-2 (fast, 3GB RAM)
-MODEL_PRESET=balanced      # Microsoft Phi-2 (default, 3GB RAM)
-MODEL_PRESET=quality       # Mistral 7B (excellent, 8GB RAM)
-MODEL_PRESET=max_quality   # Mixtral 8x7B (best, 16GB RAM)
-MODEL_PRESET=technical     # Code Llama 7B (coding/docs, 8GB RAM)
-MODEL_PRESET=mistral       # Mistral 7B (alternative)
-MODEL_PRESET=mixtral       # Mixtral 8x7B (alternative)
-MODEL_PRESET=phi           # Microsoft Phi-2 (alternative)
-MODEL_PRESET=gemma         # Google Gemma 7B (8GB RAM)
-```
-
-**Use Custom Models:**
-```env
-CUSTOM_LLM_MODEL=your-custom-model-name
-CUSTOM_EMBEDDING_MODEL=your-custom-embedding-model
-```
-
-**Advanced Settings:**
-```env
-TEMPERATURE=0.7            # Control response randomness
-MAX_NEW_TOKENS=512         # Maximum tokens in response
-LOAD_IN_8BIT=true          # Use 8-bit quantization
-DEVICE_MAP=auto            # Device mapping
-```
-
-**Device Configuration (GPU/CPU):**
-```env
-FORCE_DEVICE=auto          # Auto-detect (default)
-FORCE_DEVICE=cpu           # Force CPU usage
-FORCE_DEVICE=cuda          # Force CUDA GPU usage
-FORCE_DEVICE=mps           # Force Apple Silicon GPU
-EMBEDDING_USE_GPU=true     # Enable GPU for embeddings
-```
-
-**View Configuration Options:**
-```bash
-python config/show_config.py
-```
-
-**Check Device Configuration:**
-```bash
-python show_devices.py
-```
-
-### 5. Run the Application
-
-**Option 1: Using the launcher script (Recommended)**
-```bash
-# Windows
-run.bat
-
-# Unix/Linux/macOS
-./run.sh
-
-# Or using Python directly
-python run.py
-```
-
-**Option 2: Using the main entry point**
-```bash
-python main.py
-```
-
-**Option 3: Direct Streamlit run**
-```bash
-streamlit run src/web_interface/app.py
-```
-
-The application will be available at `http://localhost:8501`
-
-## Usage
-
-1. **Upload Documents**: Use the file uploader to add your documents
-2. **Process Documents**: Click "Process Documents" to ingest them into the vector database
-3. **Ask Questions**: Use the chat interface to ask questions about your documents
-4. **View History**: Check the conversation history and document status
-
-## Testing
-
-The application includes comprehensive functionality testing through the web interface. You can test the system by uploading documents and asking questions.
-## Development
-
-### Testing the Application
-The application can be tested through the web interface by uploading documents and asking questions to verify the RAG functionality works correctly.
-
-### Code Structure
-
-- **`src/rag_engine/`**: Core RAG functionality and orchestration
-- **`src/document_processor/`**: Document loading and text processing
-- **`src/vector_store/`**: Vector database operations
-- **`src/utils/`**: Helper functions and utilities
-- **`src/web_interface/`**: Streamlit web application
-
-### Adding New Features
-
-1. Create new modules in the appropriate `src/` subdirectory
-2. Update the relevant `__init__.py` files to export new classes/functions
-3. Test new functionality through the web interface
-4. Update documentation as needed
 
 ## Configuration
 
-You can customize the application by modifying the following parameters:
+Set options as environment variables, or in a `.env` file in the project root. Every option has a default.
 
-- **Chunk size and overlap**: In `src/document_processor/processor.py`
-- **Number of retrieved documents**: In `src/rag_engine/engine.py`
-- **Model parameters**: In `src/rag_engine/engine.py`
-- **Vector store settings**: In `src/vector_store/store.py`
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MODEL_PRESET` | `balanced` | Chooses a chat and embedding model pair. See the table below. |
+| `LLM_MODEL` | from preset | Hugging Face ID of a chat model. Overrides the preset. |
+| `EMBEDDING_MODEL` | from preset | Hugging Face ID of an embedding model. Overrides the preset. |
+| `DEVICE` | `auto` | `auto`, `cpu`, `cuda`, or `mps` (Apple Silicon). |
+| `MAX_NEW_TOKENS` | `512` | Longest answer the model writes. |
+| `TEMPERATURE` | `0.7` | Sampling temperature. `0` gives greedy, repeatable answers. |
+| `CHUNK_SIZE` | `1000` | Characters per chunk. Changing it applies to new uploads only. |
+| `CHUNK_OVERLAP` | `200` | Characters shared by neighbouring chunks. |
+| `MIN_CHUNK_CHARS` | `50` | Chunks shorter than this are dropped. |
+| `RETRIEVAL_METHOD` | `mmr` | `mmr`, `similarity`, or `hybrid`. |
+| `TOP_K` | `4` | Passages sent to the model for each question. |
+| `FETCH_K` | `20` | Candidates considered before MMR or hybrid fusion. |
+| `MMR_LAMBDA` | `0.5` | MMR balance. `0` favours variety, `1` favours relevance. |
+| `HYBRID_ALPHA` | `0.7` | Semantic weight in hybrid search. `0` uses keywords only. |
+| `VECTOR_DB_PATH` | `vector_db` | Folder for the Chroma database. |
+| `DOCUMENTS_PATH` | `documents` | Folder where the web UI saves uploads. |
+
+### Model presets
+
+| Preset | Chat model | Embedding model | Suggested hardware |
+| --- | --- | --- | --- |
+| `fast` | Qwen2.5-1.5B-Instruct | bge-small-en-v1.5 | Any laptop |
+| `balanced` (default) | Qwen2.5-3B-Instruct | bge-small-en-v1.5 | 8 GB RAM |
+| `quality` | Qwen2.5-7B-Instruct | bge-base-en-v1.5 | GPU or 16 GB RAM |
+| `code` | Qwen2.5-Coder-7B-Instruct | bge-base-en-v1.5 | GPU or 16 GB RAM |
+
+## Retrieval methods
+
+- **MMR** fetches `FETCH_K` candidates and keeps `TOP_K` that are relevant and different from each other. Good default for long documents with repeated content.
+- **Similarity** returns the closest `TOP_K` chunks. Fastest, and least varied.
+- **Hybrid** blends embedding similarity with BM25 keyword scores. Helps with exact names, codes, and rare terms.
+
+## Project layout
+
+```
+src/askmydocs/
+├── app.py                # Streamlit interface
+├── cli.py                # `askmydocs` command
+├── config.py             # Settings, RetrievalSettings, and model presets
+├── engine.py             # RAGEngine and per-session Conversation
+├── markdown_safety.py    # Sanitizes model and document text before display
+├── models.py             # Answer, SourceChunk, IndexedSource, and report types
+├── models_factory.py     # Builds the embedder and chat model
+├── documents/
+│   ├── loaders.py        # PDF, TXT, MD, and DOCX readers
+│   └── chunking.py       # Splits pages into chunks
+└── retrieval/
+    ├── ranking.py        # BM25 index and reciprocal rank fusion (pure functions)
+    └── store.py          # Chroma vector store
+tests/                    # pytest suite. Uses fake models, so no downloads.
+```
+
+## Privacy and network use
+
+- **Documents and questions stay local.** Indexing, search, and answers run on your machine.
+- **The web UI listens on `localhost` only.** It has no login, so `askmydocs ui` and `.streamlit/config.toml` keep it off your network.
+- **Telemetry is off.** Chroma's anonymous telemetry and Streamlit's usage statistics are both disabled.
+- **Model downloads.** The first run downloads the models from huggingface.co, and later runs check it for updates. After the first run, set `HF_HUB_OFFLINE=1` to work fully offline, and set `HF_HUB_DISABLE_TELEMETRY=1` to turn off Hugging Face's own telemetry.
+- **Untrusted content.** A document can try to steer the model with hidden instructions. The UI removes image embeds from answers and shows link targets in plain text, so a reply cannot quietly send data to another site.
+- **Sessions.** Each browser tab keeps its own chat history and retrieval options. The indexed documents are shared, because they live in one database.
+
+## Development
+
+```bash
+uv run pytest             # run the test suite
+uv run ruff format        # format the code
+uv run ruff check --fix   # lint: PEP 8, PEP 257 docstrings, naming, bandit security, and more
+uv run pyright            # type check in strict mode
+```
+
+The tests use LangChain's fake embedder and fake chat model. They run without downloading any model.
 
 ## Troubleshooting
 
-- **Model Loading Issues**: Ensure you have sufficient RAM (8GB+ recommended for HuggingFace models)
-- **Memory Issues**: Reduce chunk size or use smaller documents
-- **Performance**: Consider using GPU acceleration for larger document sets
-- **Import Errors**: Make sure you're running from the project root directory
-- **First Run**: Initial model download may take a few minutes
+- **Out of memory when loading a model.** Use `MODEL_PRESET=fast`, or set `DEVICE=cpu` if the GPU runs out of memory.
+- **Answers are slow.** Use a smaller preset, or install a CUDA build of PyTorch that matches your driver.
+- **Answers do not match the documents.** Try `RETRIEVAL_METHOD=hybrid`, or raise `TOP_K`.
+- **A file fails to index.** Check that it is not scanned images. PDFs need selectable text, because the app does not run OCR.
 
-### GPU/Device Issues
+## Upgrading from 1.x
 
-- **CUDA Not Available**: Install PyTorch with CUDA support: `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
-- **Apple Silicon (M1/M2)**: Use `FORCE_DEVICE=mps` for GPU acceleration
-- **Force CPU**: Use `FORCE_DEVICE=cpu` if GPU causes issues
-- **Check Devices**: Run `python show_devices.py` to see available devices
-- **Memory Issues**: Reduce model size or use `LOAD_IN_8BIT=true`
+Version 2 is a breaking change.
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+- The Python floor is now 3.14. Install with `uv sync`, not `pip install -r requirements.txt`. The requirements file is gone.
+- The presets `gpt2`, `llama2`, `gemma`, `mixtral`, and `mistral` were removed. They were legacy, gated, or too large for most machines. Use `balanced`, `quality`, or set `LLM_MODEL`.
+- `LOAD_IN_8BIT`, `DEVICE_MAP`, `TORCH_DTYPE`, and `CHUNKING_STRATEGY` were removed. The bitsandbytes dependency was removed too. The chunker now picks separators by file type.
+- The old `scripts/` launchers and `config/` helpers were replaced by the `askmydocs` command.
+- Re-run `askmydocs ingest` on your files, because the chunk metadata changed.
 
 ## License
 
-This project is open source and available under the MIT License. 
+MIT

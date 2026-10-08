@@ -1,1 +1,1 @@
-# Tests Package 
+"""Test suite for AskMyDocs."""

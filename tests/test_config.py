@@ -1,76 +1,89 @@
-"""Tests for configuration module"""
-import os
-from unittest.mock import patch, MagicMock
-from config.config import Config
+from pathlib import Path
+
+import pytest
+from pydantic import ValidationError
+
+from palimpsest.config import DEFAULT_PRESET, PRESETS, RetrievalSettings, Settings
 
 
-class TestConfig:
-    """Test configuration loading and model presets"""
-    
-    def test_config_initialization(self):
-        """Test basic config initialization"""
-        config = Config()
-        assert config is not None
-        assert hasattr(config, 'MODEL_PRESETS')
-        
-    def test_default_model_preset(self):
-        """Test default model preset is balanced"""
-        with patch.dict(os.environ, {}, clear=True):
-            config = Config()
-            # Ensure the default preset is balanced
-            assert config.CURRENT_PRESET == "balanced"
+def _settings(**overrides: object) -> Settings:
+    return Settings(_env_file=None, **overrides)  # pyright: ignore[reportCallIssue, reportArgumentType]
 
-            llm_config = config.get_current_llm_config()
-            # Retrieved model should match the balanced preset
-            balanced_model = config.MODEL_PRESETS["balanced"]["llm"].name
-            assert llm_config.name == balanced_model
-            
-    def test_custom_model_preset(self):
-        """Test setting custom model preset"""
-        # Test that quality preset exists and has the expected model
-        config = Config()
-        quality_preset = config.MODEL_PRESETS.get('quality')
-        assert quality_preset is not None
-        assert 'mistralai/Mistral-7B-Instruct-v0.3' == quality_preset['llm'].name
-        
-        # Test environment override by directly checking preset lookup
-        with patch.dict(os.environ, {'MODEL_PRESET': 'quality'}):
-            # Directly test the preset retrieval logic
-            preset_name = os.getenv("MODEL_PRESET", "balanced")
-            assert preset_name == 'quality'
-            preset_config = config.MODEL_PRESETS.get(preset_name)
-            assert preset_config is not None
-            assert preset_config['llm'].name == 'mistralai/Mistral-7B-Instruct-v0.3'
-            
-    def test_all_model_configs_available(self):
-        """Test that all model configs are accessible"""
-        config = Config()
-        all_configs = config.get_all_llm_configs()
-        assert len(all_configs) > 0
-        assert isinstance(all_configs, list)
-        
-    def test_preset_availability(self):
-        """Test that all expected presets are available"""
-        config = Config()
-        expected_presets = ['fast', 'balanced', 'quality', 'max_quality', 'technical']
-        for preset in expected_presets:
-            assert preset in config.MODEL_PRESETS
-            preset_config = config.MODEL_PRESETS[preset]
-            assert 'llm' in preset_config
-            assert 'embedding' in preset_config
-        
-    def test_embedding_config(self):
-        """Test embedding configuration"""
-        config = Config()
-        embedding_config = config.get_current_embedding_config()
-        assert embedding_config is not None
-        assert hasattr(embedding_config, 'name')
-        assert hasattr(embedding_config, 'device')
-        
-    def test_invalid_model_preset(self):
-        """Test handling of invalid model preset"""
-        with patch.dict(os.environ, {'MODEL_PRESET': 'nonexistent'}):
-            config = Config()
-            # Should fallback to default
-            llm_config = config.get_current_llm_config()
-            assert llm_config is not None
+
+def test_default_preset_is_balanced() -> None:
+    settings = _settings()
+
+    assert settings.model_preset == DEFAULT_PRESET == "balanced"
+    assert settings.resolved_llm_model == PRESETS["balanced"].llm_model
+
+
+def test_environment_overrides_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TOP_K", "7")
+    monkeypatch.setenv("RETRIEVAL_METHOD", "hybrid")
+    monkeypatch.setenv("VECTOR_DB_PATH", "/tmp/elsewhere")  # noqa: S108
+
+    settings = _settings()
+
+    assert settings.top_k == 7
+    assert settings.retrieval_method == "hybrid"
+    assert settings.vector_db_path == Path("/tmp/elsewhere")  # noqa: S108
+
+
+def test_custom_model_overrides_preset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MODEL_PRESET", "quality")
+    monkeypatch.setenv("LLM_MODEL", "example/custom-chat")
+
+    settings = _settings()
+
+    assert settings.resolved_llm_model == "example/custom-chat"
+    assert settings.resolved_embedding_model == PRESETS["quality"].embedding_model
+
+
+def test_unknown_preset_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MODEL_PRESET", "nonexistent")
+
+    with pytest.raises(ValidationError, match="Unknown MODEL_PRESET"):
+        _settings()
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"chunk_size": 200, "chunk_overlap": 200}, "CHUNK_OVERLAP must be smaller"),
+        ({"top_k": 10, "fetch_k": 5}, r"fetch_k \(5\) must be at least top_k \(10\)"),
+    ],
+)
+def test_inconsistent_settings_are_rejected(overrides: dict[str, int], message: str) -> None:
+    with pytest.raises(ValidationError, match=message):
+        _settings(**overrides)
+
+
+def test_retrieval_defaults_come_from_settings() -> None:
+    retrieval = _settings(retrieval_method="similarity", top_k=3).retrieval_defaults()
+
+    assert retrieval.method == "similarity"
+    assert retrieval.top_k == 3
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"method": "bm25"}, "Unknown retrieval method 'bm25'"),
+        ({"top_k": 0, "fetch_k": 0}, "top_k must be at least 1"),
+        ({"top_k": 10, "fetch_k": 4}, r"fetch_k \(4\) must be at least top_k \(10\)"),
+        ({"mmr_lambda": 1.5}, "mmr_lambda must be between 0 and 1"),
+        ({"hybrid_alpha": -0.1}, "hybrid_alpha must be between 0 and 1"),
+    ],
+)
+def test_invalid_retrieval_settings_are_rejected(changes: dict[str, object], message: str) -> None:
+    values: dict[str, object] = {
+        "method": "mmr",
+        "top_k": 4,
+        "fetch_k": 20,
+        "mmr_lambda": 0.5,
+        "hybrid_alpha": 0.7,
+    }
+    values.update(changes)
+
+    with pytest.raises(ValueError, match=message):
+        RetrievalSettings(**values)  # pyright: ignore[reportArgumentType]

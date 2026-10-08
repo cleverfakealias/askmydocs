@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Literal
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 
-from palimpsest.config import Device, Settings
+from askmydocs.config import Device, Settings
 
 if TYPE_CHECKING:
     import torch

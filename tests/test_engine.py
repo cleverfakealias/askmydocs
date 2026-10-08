@@ -5,13 +5,13 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langchain_core.messages import HumanMessage
 
-from palimpsest.config import RetrievalMethod, RetrievalSettings, Settings
-from palimpsest.engine import MAX_HISTORY_MESSAGES, NO_MATCH_TEXT, Conversation, RAGEngine
-from palimpsest.retrieval.store import VectorStore
+from askmydocs.config import RetrievalMethod, RetrievalSettings, Settings
+from askmydocs.engine import MAX_HISTORY_MESSAGES, NO_MATCH_TEXT, Conversation, RAGEngine
+from askmydocs.retrieval.store import VectorStore
 from tests.fakes import BrokenChatModel, FlakyEmbeddings, RecordingChatModel
 
 PARAGRAPH = (
-    "Palimpsest stores each document as overlapping chunks. "
+    "AskMyDocs stores each document as overlapping chunks. "
     "Each chunk is embedded so that questions can find the closest passages. "
 )
 

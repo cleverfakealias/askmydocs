@@ -1,6 +1,6 @@
 import pytest
 
-from palimpsest.cli import build_parser, main, ui_command
+from askmydocs.cli import build_parser, main, ui_command
 
 
 def test_ui_listens_on_localhost_only() -> None:

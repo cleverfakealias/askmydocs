@@ -1,4 +1,4 @@
-"""Streamlit interface for Palimpsest. Start it with `palimpsest ui`.
+"""Streamlit interface for AskMyDocs. Start it with `askmydocs ui`.
 
 One engine is shared by every browser session. Each session keeps its own
 `Conversation` (history and retrieval options) and chat log in `st.session_state`.
@@ -10,10 +10,10 @@ from pathlib import Path
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from palimpsest.config import RETRIEVAL_METHODS, SUPPORTED_EXTENSIONS, RetrievalSettings, Settings
-from palimpsest.engine import Conversation, RAGEngine
-from palimpsest.markdown_safety import escape_markdown, neutralize_markdown
-from palimpsest.models import Answer, chunk_label
+from askmydocs.config import RETRIEVAL_METHODS, SUPPORTED_EXTENSIONS, RetrievalSettings, Settings
+from askmydocs.engine import Conversation, RAGEngine
+from askmydocs.markdown_safety import escape_markdown, neutralize_markdown
+from askmydocs.models import Answer, chunk_label
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +215,7 @@ def _index_uploads(engine: RAGEngine, uploads: list[UploadedFile]) -> None:
 def render_sidebar(engine: RAGEngine, conversation: Conversation) -> None:
     """Show the whole sidebar."""
     with st.sidebar:
-        st.title("📜 Palimpsest")
+        st.title("📚 AskMyDocs")
         sidebar_upload_and_index(engine)
         st.divider()
         sidebar_documents(engine)
@@ -263,7 +263,7 @@ def render_chat(engine: RAGEngine, conversation: Conversation) -> None:
 
 def main() -> None:
     """Render the page."""
-    st.set_page_config(page_title="Palimpsest", page_icon="📜", layout="wide")
+    st.set_page_config(page_title="AskMyDocs", page_icon="📚", layout="wide")
     try:
         engine = get_engine()
     except Exception as exc:

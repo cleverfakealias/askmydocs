@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from palimpsest.config import Settings
-from palimpsest.retrieval.store import VectorStore
+from askmydocs.config import Settings
+from askmydocs.retrieval.store import VectorStore
 from tests.fakes import FlakyEmbeddings
 
 

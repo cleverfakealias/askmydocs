@@ -1,7 +1,7 @@
 from langchain_core.documents import Document
 
-from palimpsest.config import Settings
-from palimpsest.documents.chunking import Chunker
+from askmydocs.config import Settings
+from askmydocs.documents.chunking import Chunker
 
 
 def _page(text: str, file_type: str = ".txt") -> Document:

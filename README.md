@@ -1,8 +1,8 @@
-# Palimpsest
+# AskMyDocs
 
-Chat with your own documents. Palimpsest indexes PDF, TXT, Markdown, and Word files on your machine, then answers questions with a local open-weight model. It needs no API keys, and your documents and questions never leave your machine. The only network traffic is the model download from Hugging Face, which you can turn off after the first run. See [Privacy and network use](#privacy-and-network-use).
+Chat with your own documents. AskMyDocs indexes PDF, TXT, Markdown, and Word files on your machine, then answers questions with a local open-weight model. It needs no API keys, and your documents and questions never leave your machine. The only network traffic is the model download from Hugging Face, which you can turn off after the first run. See [Privacy and network use](#privacy-and-network-use).
 
-> A palimpsest is a manuscript written over older text that still shows through. The app layers answers over your files the same way, and cites the passages it used.
+> Ask a question about your files. Get an answer that cites the exact passages it used.
 
 ## Features
 
@@ -10,7 +10,7 @@ Chat with your own documents. Palimpsest indexes PDF, TXT, Markdown, and Word fi
 - **Cited answers.** Each answer lists the file and page of every passage it used.
 - **Three retrieval methods.** MMR (default), plain similarity, and hybrid semantic plus BM25 keyword search.
 - **Clear failure handling.** A bad file does not stop a batch. A failed model shows the matching passages instead.
-- **Web UI and CLI.** Use Streamlit in the browser or the `palimpsest` command in a terminal.
+- **Web UI and CLI.** Use Streamlit in the browser or the `askmydocs` command in a terminal.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ Chat with your own documents. Palimpsest indexes PDF, TXT, Markdown, and Word fi
 uv sync
 
 # Open the web interface at http://localhost:8501
-uv run palimpsest ui
+uv run askmydocs ui
 ```
 
 The first run downloads the chat model and the embedding model. This can take several minutes.
@@ -34,10 +34,10 @@ The first run downloads the chat model and the embedding model. This can take se
 ## Command line
 
 ```bash
-uv run palimpsest ingest docs/handbook.pdf notes.md   # index files
-uv run palimpsest ask "What does the handbook say about refunds?"
-uv run palimpsest status                              # list indexed files
-uv run palimpsest -v ask "..."                        # show debug logs
+uv run askmydocs ingest docs/handbook.pdf notes.md    # index files
+uv run askmydocs ask "What does the handbook say about refunds?"
+uv run askmydocs status                               # list indexed files
+uv run askmydocs -v ask "..."                         # show debug logs
 ```
 
 ## Configuration
@@ -81,9 +81,9 @@ Set options as environment variables, or in a `.env` file in the project root. E
 ## Project layout
 
 ```
-src/palimpsest/
+src/askmydocs/
 ├── app.py                # Streamlit interface
-├── cli.py                # `palimpsest` command
+├── cli.py                # `askmydocs` command
 ├── config.py             # Settings, RetrievalSettings, and model presets
 ├── engine.py             # RAGEngine and per-session Conversation
 ├── markdown_safety.py    # Sanitizes model and document text before display
@@ -101,7 +101,7 @@ tests/                    # pytest suite. Uses fake models, so no downloads.
 ## Privacy and network use
 
 - **Documents and questions stay local.** Indexing, search, and answers run on your machine.
-- **The web UI listens on `localhost` only.** It has no login, so `palimpsest ui` and `.streamlit/config.toml` keep it off your network.
+- **The web UI listens on `localhost` only.** It has no login, so `askmydocs ui` and `.streamlit/config.toml` keep it off your network.
 - **Telemetry is off.** Chroma's anonymous telemetry and Streamlit's usage statistics are both disabled.
 - **Model downloads.** The first run downloads the models from huggingface.co, and later runs check it for updates. After the first run, set `HF_HUB_OFFLINE=1` to work fully offline, and set `HF_HUB_DISABLE_TELEMETRY=1` to turn off Hugging Face's own telemetry.
 - **Untrusted content.** A document can try to steer the model with hidden instructions. The UI removes image embeds from answers and shows link targets in plain text, so a reply cannot quietly send data to another site.
@@ -132,8 +132,8 @@ Version 2 is a breaking change.
 - The Python floor is now 3.14. Install with `uv sync`, not `pip install -r requirements.txt`. The requirements file is gone.
 - The presets `gpt2`, `llama2`, `gemma`, `mixtral`, and `mistral` were removed. They were legacy, gated, or too large for most machines. Use `balanced`, `quality`, or set `LLM_MODEL`.
 - `LOAD_IN_8BIT`, `DEVICE_MAP`, `TORCH_DTYPE`, and `CHUNKING_STRATEGY` were removed. The bitsandbytes dependency was removed too. The chunker now picks separators by file type.
-- The old `scripts/` launchers and `config/` helpers were replaced by the `palimpsest` command.
-- Re-run `palimpsest ingest` on your files, because the chunk metadata changed.
+- The old `scripts/` launchers and `config/` helpers were replaced by the `askmydocs` command.
+- Re-run `askmydocs ingest` on your files, because the chunk metadata changed.
 
 ## License
 

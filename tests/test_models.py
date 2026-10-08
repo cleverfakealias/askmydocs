@@ -1,6 +1,6 @@
 import pytest
 
-from palimpsest.models import EXCERPT_CHARS, SourceChunk, chunk_label
+from askmydocs.models import EXCERPT_CHARS, SourceChunk, chunk_label
 
 
 @pytest.mark.parametrize(

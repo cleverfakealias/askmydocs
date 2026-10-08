@@ -2,8 +2,8 @@ import pytest
 import torch
 from transformers import GenerationConfig
 
-from palimpsest.config import Settings
-from palimpsest.models_factory import (
+from askmydocs.config import Settings
+from askmydocs.models_factory import (
     ResolvedDevice,
     apply_generation_settings,
     dtype_for,

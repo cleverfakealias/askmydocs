@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from palimpsest.retrieval.ranking import BM25Index, bm25_rank, fuse_rankings, tokenize
+from askmydocs.retrieval.ranking import BM25Index, bm25_rank, fuse_rankings, tokenize
 
 
 def _doc(text: str, index: int = 0) -> Document:

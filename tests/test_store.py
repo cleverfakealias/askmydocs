@@ -1,8 +1,8 @@
 import pytest
 from langchain_core.documents import Document
 
-from palimpsest.models import IndexedSource
-from palimpsest.retrieval.store import VectorStore
+from askmydocs.models import IndexedSource
+from askmydocs.retrieval.store import VectorStore
 from tests.fakes import FlakyEmbeddings
 
 

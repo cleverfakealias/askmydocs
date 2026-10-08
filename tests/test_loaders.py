@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from docx import Document as DocxDocument
 
-from palimpsest.documents.loaders import UnsupportedFileError, load_file
+from askmydocs.documents.loaders import UnsupportedFileError, load_file
 
 
 def test_text_file_becomes_one_document(tmp_path: Path) -> None:

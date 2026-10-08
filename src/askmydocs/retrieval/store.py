@@ -12,9 +12,9 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
-from palimpsest.models import IndexedSource
+from askmydocs.models import IndexedSource
 
-COLLECTION_NAME = "palimpsest"
+COLLECTION_NAME = "askmydocs"
 
 
 class VectorStore:

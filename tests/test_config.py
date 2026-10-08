@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from palimpsest.config import DEFAULT_PRESET, PRESETS, RetrievalSettings, Settings
+from askmydocs.config import DEFAULT_PRESET, PRESETS, RetrievalSettings, Settings
 
 
 def _settings(**overrides: object) -> Settings:

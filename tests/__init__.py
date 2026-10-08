@@ -1,1 +1,1 @@
-"""Test suite for Palimpsest."""
+"""Test suite for AskMyDocs."""

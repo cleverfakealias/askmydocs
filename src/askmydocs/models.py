@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from palimpsest.config import RetrievalMethod
+from askmydocs.config import RetrievalMethod
 
 EXCERPT_CHARS = 240
 

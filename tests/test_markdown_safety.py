@@ -1,6 +1,6 @@
 import pytest
 
-from palimpsest.markdown_safety import escape_markdown, neutralize_markdown
+from askmydocs.markdown_safety import escape_markdown, neutralize_markdown
 
 
 @pytest.mark.parametrize(

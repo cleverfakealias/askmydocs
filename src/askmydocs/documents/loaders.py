@@ -6,7 +6,7 @@ from docx import Document as DocxDocument
 from langchain_core.documents import Document
 from pypdf import PdfReader
 
-from palimpsest.config import SUPPORTED_EXTENSIONS
+from askmydocs.config import SUPPORTED_EXTENSIONS
 
 
 class UnsupportedFileError(ValueError):
@@ -30,7 +30,9 @@ def load_file(path: Path) -> list[Document]:
     extension = path.suffix.lower()
     if extension not in SUPPORTED_EXTENSIONS:
         supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
-        raise UnsupportedFileError(f"{path.name}: unsupported type '{extension}'. Use {supported}.")
+        raise UnsupportedFileError(
+            f"{path.name}: unsupported type '{extension}'. Use {supported}."
+        )
 
     pages: list[tuple[int | None, str]]
     if extension == ".pdf":

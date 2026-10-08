@@ -1,4 +1,4 @@
-"""Command-line interface: `palimpsest ingest`, `ask`, `status`, and `ui`."""
+"""Command-line interface: `askmydocs ingest`, `ask`, `status`, and `ui`."""
 
 import argparse
 import logging
@@ -7,16 +7,16 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from palimpsest.config import Settings
-from palimpsest.engine import RAGEngine
-from palimpsest.models import chunk_label
+from askmydocs.config import Settings
+from askmydocs.engine import RAGEngine
+from askmydocs.models import chunk_label
 
 APP_PATH = Path(__file__).with_name("app.py")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Return the argument parser for the `palimpsest` command."""
-    parser = argparse.ArgumentParser(prog="palimpsest", description=__doc__)
+    """Return the argument parser for the `askmydocs` command."""
+    parser = argparse.ArgumentParser(prog="askmydocs", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true", help="show debug logs")
     commands = parser.add_subparsers(dest="command", required=True)
 

@@ -5,7 +5,7 @@ import re
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from palimpsest.config import Settings
+from askmydocs.config import Settings
 
 # Markdown splits on headings first, so a section stays in one chunk when it fits.
 MARKDOWN_SEPARATORS = ["\n# ", "\n## ", "\n### ", "\n\n", "\n", ". ", " ", ""]

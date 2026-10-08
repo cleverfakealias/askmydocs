@@ -6,7 +6,7 @@
 
 ## Project
 
-- **Name**: palimpsest (formerly langchain-rag-app)
+- **Name**: askmydocs (formerly langchain-rag-app)
 - **Purpose**: A Retrieval-Augmented Generation app. Ingest documents, embed them
   into a vector store, and answer questions with citations through a Streamlit UI or a CLI.
 - **Stack**: Python 3.14+ · LangChain 1.x · Chroma · Hugging Face models (local,
@@ -14,16 +14,16 @@
 
 ## Layout
 
-- `src/palimpsest/app.py` — Streamlit UI. Keep it thin. Logic belongs in the engine.
-- `src/palimpsest/cli.py` — the `palimpsest` command (`ingest`, `ask`, `status`, `ui`).
-- `src/palimpsest/config.py` — `Settings` (pydantic-settings) and model presets.
-- `src/palimpsest/engine.py` — `RAGEngine` (shared, stateless per user) and `Conversation`
+- `src/askmydocs/app.py` — Streamlit UI. Keep it thin. Logic belongs in the engine.
+- `src/askmydocs/cli.py` — the `askmydocs` command (`ingest`, `ask`, `status`, `ui`).
+- `src/askmydocs/config.py` — `Settings` (pydantic-settings) and model presets.
+- `src/askmydocs/engine.py` — `RAGEngine` (shared, stateless per user) and `Conversation`
   (one per user session: history and retrieval options).
-- `src/palimpsest/markdown_safety.py` — sanitizes model and document text before the UI renders it.
-- `src/palimpsest/models.py` — shared dataclasses (`Answer`, `SourceChunk`, reports).
-- `src/palimpsest/models_factory.py` — builds the embedder and chat model.
-- `src/palimpsest/documents/` — file loaders and chunking.
-- `src/palimpsest/retrieval/` — Chroma store and pure ranking functions.
+- `src/askmydocs/markdown_safety.py` — sanitizes model and document text before the UI renders it.
+- `src/askmydocs/models.py` — shared dataclasses (`Answer`, `SourceChunk`, reports).
+- `src/askmydocs/models_factory.py` — builds the embedder and chat model.
+- `src/askmydocs/documents/` — file loaders and chunking.
+- `src/askmydocs/retrieval/` — Chroma store and pure ranking functions.
 - `tests/` — pytest suite. Uses LangChain fakes. Never downloads a model.
 
 ## Commands
@@ -35,9 +35,9 @@ uv run pytest tests/test_engine.py       # one file
 uv run ruff format                       # format (line length 99, the PEP 8 maximum)
 uv run ruff check --fix                  # lint: pycodestyle, pydocstyle (Google), bandit, ...
 uv run pyright                           # type check, strict mode
-uv run palimpsest ui                     # Streamlit UI on http://localhost:8501
-uv run palimpsest ingest <files...>      # index documents from the command line
-uv run palimpsest ask "<question>"       # ask from the command line
+uv run askmydocs ui                      # Streamlit UI on http://localhost:8501
+uv run askmydocs ingest <files...>       # index documents from the command line
+uv run askmydocs ask "<question>"        # ask from the command line
 ```
 
 Before you call a change finished, run `uv run ruff check`, `uv run ruff format --check`,

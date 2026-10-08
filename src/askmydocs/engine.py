@@ -12,13 +12,13 @@ from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
-from palimpsest.config import RetrievalSettings, Settings
-from palimpsest.documents.chunking import Chunker
-from palimpsest.documents.loaders import load_file
-from palimpsest.models import Answer, FileIngest, IndexedSource, IngestReport, SourceChunk
-from palimpsest.models_factory import build_chat_model, build_embeddings
-from palimpsest.retrieval.ranking import BM25Index, fuse_rankings
-from palimpsest.retrieval.store import VectorStore
+from askmydocs.config import RetrievalSettings, Settings
+from askmydocs.documents.chunking import Chunker
+from askmydocs.documents.loaders import load_file
+from askmydocs.models import Answer, FileIngest, IndexedSource, IngestReport, SourceChunk
+from askmydocs.models_factory import build_chat_model, build_embeddings
+from askmydocs.retrieval.ranking import BM25Index, fuse_rankings
+from askmydocs.retrieval.store import VectorStore
 
 logger = logging.getLogger(__name__)
 

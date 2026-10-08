@@ -1,0 +1,9 @@
+# Applies when Streamlit is started from the repository root.
+# `palimpsest ui` passes the same options on the command line.
+
+[server]
+# The UI has no login, so it listens on this machine only.
+address = "localhost"
+
+[browser]
+gatherUsageStats = false

@@ -50,7 +50,7 @@ ehthumbs.db
 Thumbs.db
 
 # Application specific
-documents/
+/documents/
 vector_db/
 *.db
 *.sqlite
@@ -79,3 +79,8 @@ htmlcov/
 dmypy.json 
 # Claude Code local settings
 .claude/settings.local.json
+
+# uv and tool caches
+.venv/
+.ruff_cache/
+.pyright/
